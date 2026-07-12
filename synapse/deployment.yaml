@@ -34,6 +34,9 @@ spec:
             - name: signing-key
               mountPath: /data/chat.r16a.cloud.signing.key
               subPath: chat.r16a.cloud.signing.key
+            - name: log-config
+              mountPath: /data/chat.r16a.cloud.log.config
+              subPath: chat.r16a.cloud.log.config
             - name: media
               mountPath: /data/media_store
           resources:
@@ -52,6 +55,9 @@ spec:
         - name: signing-key
           secret:
             secretName: synapse-signing-key
+        - name: log-config
+          secret:
+            secretName: synapse-log-config
         - name: media
           persistentVolumeClaim:
             claimName: synapse-media
