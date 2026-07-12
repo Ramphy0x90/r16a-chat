@@ -7,15 +7,11 @@ data:
   init.sql: |
     \getenv synapse_password SYNAPSE_PW
 
-    DO $$
-    BEGIN
-      IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'synapse') THEN
-        CREATE USER synapse WITH PASSWORD :'synapse_password';
-    ELSE
-        ALTER USER synapse WITH PASSWORD :'synapse_password';
-    END IF;
-    END
-    $$;
+    SELECT format('CREATE USER synapse WITH PASSWORD %L', :'synapse_password')
+        WHERE NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'synapse')
+        \gexec
+
+    ALTER USER synapse WITH PASSWORD :'synapse_password';
 
     SELECT 'CREATE DATABASE synapse
       ENCODING ''UTF8''
