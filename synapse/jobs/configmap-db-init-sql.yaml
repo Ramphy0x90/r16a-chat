@@ -9,6 +9,8 @@ data:
     BEGIN
       IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'synapse') THEN
         CREATE USER synapse WITH PASSWORD :'synapse_password';
+    ELSE
+        ALTER USER synapse WITH PASSWORD :'synapse_password';
     END IF;
     END
     $$;
