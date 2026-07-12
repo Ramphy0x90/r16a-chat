@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: synapse-create-admin
+  namespace: r16a-chat
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: register
+          image: matrixdotorg/synapse:latest
+          env:
+            - name: USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: synapse-admin-account
+                  key: username
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: synapse-admin-account
+                  key: password
+          command:
+            - sh
+            - -c
+            - |
+              register_new_matrix_user -u "$USERNAME" -p "$PASSWORD" -a \
+                -c /data/homeserver.yaml http://synapse.r16a-chat.svc.cluster.local:8008
+          volumeMounts:
+            - name: config
+              mountPath: /data/homeserver.yaml
+              subPath: homeserver.yaml
+      volumes:
+        - name: config
+          secret:
+            secretName: synapse-config

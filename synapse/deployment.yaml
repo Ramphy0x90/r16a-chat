@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: synapse
+  namespace: r16a-chat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: synapse
+  template:
+    metadata:
+      labels:
+        app: synapse
+    spec:
+      containers:
+        - name: synapse
+          image: matrixdotorg/synapse:latest
+          ports:
+            - containerPort: 8008
+          volumeMounts:
+            - name: config
+              mountPath: /data/homeserver.yaml
+              subPath: homeserver.yaml
+            - name: signing-key
+              mountPath: /data/chat.r16a.cloud.signing.key
+              subPath: chat.r16a.cloud.signing.key
+            - name: media
+              mountPath: /data/media_store
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+      volumes:
+        - name: config
+          secret:
+            secretName: synapse-config
+        - name: signing-key
+          secret:
+            secretName: synapse-signing-key
+        - name: media
+          persistentVolumeClaim:
+            claimName: synapse-media

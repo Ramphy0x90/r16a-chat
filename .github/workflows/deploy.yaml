@@ -1,0 +1,61 @@
+name: Deploy r16a-chat
+on:
+  push:
+    branches: [main]
+jobs:
+  validate:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy config scan (Kubernetes manifests)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          scan-ref: "."
+          severity: "CRITICAL,HIGH"
+          exit-code: "1"
+          format: "table"
+
+  deploy:
+    needs: [validate]
+    runs-on: self-hosted
+    environment: Deploy
+    env:
+      KUBECONFIG: /home/r16a-runner/.kube/config
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply namespace
+        run: kubectl apply -f namespace.yaml
+
+      - name: Decrypt and apply secrets
+        run: |
+          for f in $(find synapse/secrets -name '*.yaml'); do
+              echo "Applying $f"
+              sops --decrypt "$f" | kubectl apply -f -
+          done
+
+      - name: Apply DB init config
+        run: kubectl apply -f synapse/jobs/configmap-db-init-sql.yaml
+
+      - name: Run DB init job
+        run: |
+          kubectl delete job synapse-db-init -n r16a-chat --ignore-not-found
+          kubectl apply -f synapse/jobs/db-init.yaml
+          kubectl wait --for=condition=complete job/synapse-db-init -n r16a-chat --timeout=120s
+
+      - name: Deploy Synapse
+        run: |
+          kubectl apply -f synapse/pvc.yaml
+          kubectl apply -f synapse/deployment.yaml
+          kubectl apply -f synapse/service.yaml
+          kubectl rollout status deployment/synapse -n r16a-chat --timeout=180s
+
+      - name: Apply ingress
+        run: kubectl apply -f synapse/ingress.yaml
+
+      - name: Create admin account (idempotent)
+        run: |
+          kubectl delete job synapse-create-admin -n r16a-chat --ignore-not-found
+          kubectl apply -f synapse/jobs/create-admin.yaml
+          kubectl wait --for=condition=complete job/synapse-create-admin -n r16a-chat --timeout=60s || true

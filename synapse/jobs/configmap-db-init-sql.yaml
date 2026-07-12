@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: synapse-db-init-sql
+  namespace: r16a-chat
+data:
+  init.sql: |
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'synapse') THEN
+        CREATE USER synapse WITH PASSWORD :'synapse_password';
+    END IF;
+    END
+    $$;
+
+    SELECT 'CREATE DATABASE synapse
+      ENCODING ''UTF8''
+      LC_COLLATE ''C''
+      LC_CTYPE ''C''
+      TEMPLATE template0
+      OWNER synapse'
+        WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'synapse')\gexec
