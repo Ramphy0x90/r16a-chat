@@ -11,7 +11,16 @@ spec:
       containers:
         - name: register
           image: matrixdotorg/synapse:latest
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 991
+            capabilities:
+              drop: ["ALL"]
           env:
+            - name: HOME
+              value: /tmp
             - name: USERNAME
               valueFrom:
                 secretKeyRef:
@@ -29,10 +38,14 @@ spec:
               register_new_matrix_user -u "$USERNAME" -p "$PASSWORD" -a \
                 -c /data/homeserver.yaml http://synapse.r16a-chat.svc.cluster.local:8008
           volumeMounts:
+            - name: tmp
+              mountPath: /tmp
             - name: config
               mountPath: /data/homeserver.yaml
               subPath: homeserver.yaml
       volumes:
+        - name: tmp
+          emptyDir: {}
         - name: config
           secret:
             secretName: synapse-config

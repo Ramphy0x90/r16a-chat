@@ -11,7 +11,16 @@ spec:
       containers:
         - name: init
           image: postgres:16-alpine
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 999
+            capabilities:
+              drop: ["ALL"]
           env:
+            - name: HOME
+              value: /tmp
             - name: PGHOST
               value: "postgres.r16a-databases.svc.cluster.local"
             - name: PGUSER
@@ -29,11 +38,15 @@ spec:
                 secretKeyRef:
                   name: synapse-db
                   key: password
-          command: [ "sh", "-c", "psql -v synapse_password=\"$SYNAPSE_PW\" -f /sql/init.sql" ]
+          command: ["sh", "-c", "psql -v synapse_password=\"$SYNAPSE_PW\" -f /sql/init.sql"]
           volumeMounts:
+            - name: tmp
+              mountPath: /tmp
             - name: init-sql
               mountPath: /sql
       volumes:
+        - name: tmp
+          emptyDir: {}
         - name: init-sql
           configMap:
             name: synapse-db-init-sql
