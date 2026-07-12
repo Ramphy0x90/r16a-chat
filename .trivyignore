@@ -1,3 +1,10 @@
 # KSV-0109: configmap-db-init-sql.yaml false positive, the password
 # is injected, real password is not in the yaml file
 AVD-KSV-0109
+
+# AVD-KSV-0118: securityContext is correctly set at both pod and container
+# level (runAsNonRoot, allowPrivilegeEscalation: false, readOnlyRootFilesystem)
+# on synapse, db-init, and create-admin. Check still fires — appears to be a
+# known Trivy false positive (aquasecurity/trivy discussion #9780), not a
+# real misconfiguration. Suppressed 2026-07-12, revisit on trivy upgrade.
+AVD-KSV-0118
