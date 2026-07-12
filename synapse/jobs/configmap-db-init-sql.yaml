@@ -13,6 +13,8 @@ data:
 
     ALTER USER synapse WITH PASSWORD :'synapse_password';
 
+    GRANT synapse TO CURRENT_USER;
+
     SELECT 'CREATE DATABASE synapse
       ENCODING ''UTF8''
       LC_COLLATE ''C''
