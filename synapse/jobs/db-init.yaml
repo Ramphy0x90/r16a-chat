@@ -23,6 +23,8 @@ spec:
               value: /tmp
             - name: PGHOST
               value: "postgres.r16a-databases.svc.cluster.local"
+            - name: PGDATABASE
+              value: "postgres"
             - name: PGUSER
               valueFrom:
                 secretKeyRef:
