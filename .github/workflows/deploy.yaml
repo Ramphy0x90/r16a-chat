@@ -50,6 +50,7 @@ jobs:
           kubectl apply -f synapse/pvc.yaml
           kubectl apply -f synapse/deployment.yaml
           kubectl apply -f synapse/service.yaml
+          kubectl rollout restart deployment/synapse -n r16a-chat
           kubectl rollout status deployment/synapse -n r16a-chat --timeout=180s
 
       - name: Apply ingress
