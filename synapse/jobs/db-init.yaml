@@ -40,7 +40,7 @@ spec:
                 secretKeyRef:
                   name: synapse-db
                   key: password
-          command: ["sh", "-c", "psql -v synapse_password=\"$SYNAPSE_PW\" -f /sql/init.sql"]
+          command: ["psql", "-f", "/sql/init.sql"]
           volumeMounts:
             - name: tmp
               mountPath: /tmp
